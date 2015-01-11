@@ -8,12 +8,12 @@ import (
 const DEBUG = false
 
 type parseStack struct{
-	source astNode
+	source Node
 	stack Stack
 }
 
-func (s *parseStack) Start(nodeType string) {
-	pushed := &astNode{nodeType: nodeType}
+func (s *parseStack) Start(Type string) {
+	pushed := &Node{Type: Type}
 	if DEBUG {
 		fmt.Printf("Starting: %s\n", valueAsString(pushed))
 	}
@@ -21,9 +21,9 @@ func (s *parseStack) Start(nodeType string) {
 }
 
 func (s *parseStack) Emit(value interface{}) {
-	var top *astNode
+	var top *Node
 	if s.stack.Len() > 0 {
-		top = s.stack.Peek().(*astNode)
+		top = s.stack.Peek().(*Node)
 	} else {
 		if DEBUG {
 			fmt.Printf("Emitting value to source: %s\n", valueAsString(value))
@@ -45,8 +45,15 @@ func valueAsString(value interface{}) string {
 	switch v := value.(type) {
 	default:
 		return fmt.Sprintf("%+v", value)
-	case *astNode:
-		return fmt.Sprintf("(%s %s)", v.nodeType, valueAsString(v.nodeValues))
+	case *Node:
+		return fmt.Sprintf("(%s %s)", v.Type, valueAsString(v.Values))
+	// TODO: This sucks
+	case []*Node:
+		var nodeValues []string
+		for _, nodeValue := range v {
+			nodeValues = append(nodeValues, valueAsString(nodeValue))
+		}
+		return strings.Join(nodeValues, " ")
 	case []interface{}:
 		var nodeValues []string
 		for _, nodeValue := range v {
@@ -56,15 +63,23 @@ func valueAsString(value interface{}) string {
 	}
 }
 
+func (s *parseStack) Rifts() []*Node {
+	var rifts []*Node
+	for _, rift := range s.source.Values {
+		rifts = append(rifts, rift.(*Node))
+	}
+	return rifts
+}
+
 func (s *parseStack) Lisp() string {
-	return fmt.Sprintf(valueAsString(s.source.nodeValues))
+	return fmt.Sprintf(valueAsString(s.Rifts()))
 }
 
-type astNode struct{
-	nodeType   string
-	nodeValues []interface{}
+type Node struct{
+	Type   string
+	Values []interface{}
 }
 
-func (n *astNode) Add(value interface{}) {
-	n.nodeValues = append(n.nodeValues, value)
+func (n *Node) Add(value interface{}) {
+	n.Values = append(n.Values, value)
 }
