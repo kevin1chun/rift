@@ -1,11 +1,11 @@
-package vm
+package std
 
 import (
 	"fmt"
 	"strings"
 )
 
-func println(objs...interface{}) {
+func Println(objs...interface{}) {
 	var strs []string
 	for _, obj := range objs {
 		strs = append(strs, fmt.Sprintf("%s", obj))

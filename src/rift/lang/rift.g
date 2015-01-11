@@ -6,7 +6,7 @@ type riftParser Peg {
 
 Source     <- sp (Rift sp)+ !.
 
-Rift       <- { p.Start(RIFT) } LocalRef sp '=>' sp Block { p.End() }
+Rift       <- { p.Start(RIFT) } '@'? LocalRef sp '=>' sp Block { p.End() }
 
 # TODO: Do you have to use an msp here? I wonder if there is another way to delimit lines
 Block      <- '{' sp (Line msp)* '}'

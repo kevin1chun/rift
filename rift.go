@@ -8,6 +8,12 @@ import (
 	"rift/vm"
 )
 
+const (
+	INVALID_ARGS = 0
+	INVALID_FILE = 1
+	SYNTAX_ERROR = 2
+)
+
 func main() {
 	flag.Parse()
 	args := flag.Args()
@@ -17,16 +23,21 @@ func main() {
 		printUsage()
 	case len(args) == 1 && args[0] == "version":
 		printVersion()
-	case len(args) > 1 && args[0] == "build":
-		build(args[1:])
+	// case len(args) > 1 && args[0] == "build":
+	// 	build(args[1:])
 	case len(args) > 1 && args[0] == "run":
 		run(args[1:])
 	}
 }
 
 func printUsage() {
-	fmt.Printf("Usage: rift version|(run <filename>)\n")
-	os.Exit(1)
+	fmt.Printf("Usage: rift COMMAND [ARGS]\n\n" +
+		"COMMANDS\n" +
+		"\tversion\tPrints the Rift version\n" +
+		// "\tbuild\tBuilds the provided source files\n" +
+		"\trun\tBuilds and runs the provided source files\n" +
+		"\n")
+	os.Exit(INVALID_ARGS)
 }
 
 func printVersion() {
@@ -38,15 +49,15 @@ func build(filenames []string) []*lang.Node {
 	for _, filename := range filenames {
 		source, readErr := os.Open(filename)
 		if readErr != nil {
-			fmt.Printf("Couldn't open file [%s]: %+v", filename, readErr)
+			fmt.Printf("Couldn't open file [%s]: %+v\n", filename, readErr)
+			os.Exit(INVALID_FILE)
 		}
 
 		parsed, parseErr := lang.Parse(source)
 		if parseErr != nil {
-			fmt.Printf("Parse error: %+v", parseErr)
+			fmt.Printf("Syntax error [%s]: %+v\n", filename, parseErr)
+			os.Exit(SYNTAX_ERROR)
 		}
-
-		fmt.Printf("Compiled file [%s]\n", filename)
 
 		rifts = append(rifts, parsed.Rifts()...)
 	}

@@ -1,5 +1,9 @@
 package lang
 
+import (
+	"strings"
+)
+
 const (
 	RIFT  = "rift"
 	FUNC = "function-definition"
@@ -27,8 +31,17 @@ func NewRift(node interface{}) *Rift {
 	return &Rift{node.(*Node), make(map[string]interface{})}
 }
 
-func (r *Rift) Name() string {
+func (r *Rift) RawName() string {
 	return r.node.Values[0].(string)
+}
+
+func (r *Rift) Name() string {
+	rawName := r.RawName()
+	if r.HasGravity() {
+		return string(rawName[1:])
+	} else {
+		return rawName
+	}
 }
 
 func (r *Rift) Lines() []*Node {
@@ -37,6 +50,10 @@ func (r *Rift) Lines() []*Node {
 		lines = append(lines, line.(*Node))
 	}
 	return lines
+}
+
+func (r *Rift) HasGravity() bool {
+	return strings.HasPrefix(r.RawName(), "@")
 }
 
 type Ref struct{
@@ -81,7 +98,7 @@ func (fa *FuncApply) Ref() *Ref {
 
 func (fa *FuncApply) Args() []*Node {
 	var args []*Node
-	for _, arg := range fa.node.Values[1:] {
+	for _, arg := range fa.node.Values[1].(*Node).Values {
 		args = append(args, arg.(*Node))
 	}
 	return args

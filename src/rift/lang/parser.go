@@ -1,11 +1,12 @@
 package lang
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
+	"strings"
 )
 
-// TODO: Use a reader instead
 func Parse(source io.Reader) (*riftParser, error) {
 	readSource, sourceErr := ioutil.ReadAll(source)
 	if sourceErr != nil {
@@ -21,4 +22,14 @@ func Parse(source io.Reader) (*riftParser, error) {
 	parser.Execute()
 
 	return parser, nil
+}
+
+// TODO: Can this work any better?
+func GetSyntaxErrors(p *riftParser) string {
+	var errors []string
+	for _, err := range p.Error() {
+		pos := translatePositions(p.Buffer, []int{int(err.begin), int(err.end)})[0]
+		errors = append(errors, fmt.Sprintf("Line %d, character %d", pos.line, pos.symbol))
+	}
+	return strings.Join(errors, "\n")
 }

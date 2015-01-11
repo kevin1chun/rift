@@ -3,6 +3,7 @@ package vm
 import (
 	"fmt"
 	"rift/lang"
+	"rift/std"
 )
 
 type VM struct{
@@ -17,10 +18,6 @@ func New(nodes []*lang.Node) *VM {
 		rift := lang.NewRift(node)
 		rifts[rift.Name()] = rift
 	}
-
-	for k, _ := range rifts {
-		fmt.Printf("Discovered rift[%s]\n", k)
-	}
 	return &VM{rifts}
 }
 
@@ -33,7 +30,19 @@ func (vm *VM) Run() {
 				funcApply := lang.NewFuncApply(line)
 				ref := funcApply.Ref()
 				args := funcApply.Args()
-				fmt.Printf("Calling func [%s] with args [%s]\n", ref, args)
+				if ref.Rift() == "std" && ref.Name() == "println" {
+					var interfaceArgs []interface{}
+					for _, arg := range args {
+						if arg.Type == lang.STRING {
+							interfaceArgs = append(interfaceArgs, arg.Values[0].(string))
+						} else {
+							interfaceArgs = append(interfaceArgs, fmt.Sprintf("%+v", arg))
+						}
+					}
+					std.Println(interfaceArgs...)
+				} else {
+					fmt.Printf("Applying func [%s] with args [%s]\n", ref, args)
+				}
 			}
 		}
 	}

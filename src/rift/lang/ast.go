@@ -5,19 +5,13 @@ import (
 	"strings"
 )
 
-const DEBUG = false
-
 type parseStack struct{
 	source Node
 	stack Stack
 }
 
 func (s *parseStack) Start(Type string) {
-	pushed := &Node{Type: Type}
-	if DEBUG {
-		fmt.Printf("Starting: %s\n", valueAsString(pushed))
-	}
-	s.stack.Push(pushed)
+	s.stack.Push(&Node{Type: Type})
 }
 
 func (s *parseStack) Emit(value interface{}) {
@@ -25,9 +19,6 @@ func (s *parseStack) Emit(value interface{}) {
 	if s.stack.Len() > 0 {
 		top = s.stack.Peek().(*Node)
 	} else {
-		if DEBUG {
-			fmt.Printf("Emitting value to source: %s\n", valueAsString(value))
-		}
 		top = &s.source
 	}
 	top.Add(value)
@@ -35,9 +26,6 @@ func (s *parseStack) Emit(value interface{}) {
 
 func (s *parseStack) End() {
 	popped := s.stack.Pop()
-	if DEBUG {
-		fmt.Printf("Ending: %s\n", valueAsString(popped))
-	}
 	s.Emit(popped)
 }
 
