@@ -52,6 +52,28 @@ func (r *Rift) Lines() []*Node {
 	return lines
 }
 
+func (r *Rift) Assignments() []*Assignment {
+	var assignments []*Assignment
+	for _, line := range r.Lines() {
+		if line.Type == ASSIGNMENT {
+			assignments = append(assignments, NewAssignment(line))
+		}
+	}
+	return assignments
+}
+
+// TODO: Should this somehow be separate from the main code?
+func (r *Rift) Protocol() map[string]*Node {
+	proto := make(map[string]*Node)
+	for _, assignment := range r.Assignments() {
+		value := assignment.Value()
+		if value.Type == FUNC {
+			proto[assignment.Ref().Name()] = assignment.Value()
+		}
+	}
+	return proto
+}
+
 func (r *Rift) HasGravity() bool {
 	return strings.HasPrefix(r.RawName(), "@")
 }
@@ -84,6 +106,10 @@ func (r *Ref) Name() string {
 	}
 }
 
+func (r *Ref) String() string {
+	return r.Rift() + ":" + r.Name()
+}
+
 type FuncApply struct{
 	node *Node
 }
@@ -102,4 +128,20 @@ func (fa *FuncApply) Args() []*Node {
 		args = append(args, arg.(*Node))
 	}
 	return args
+}
+
+type Assignment struct{
+	node *Node
+}
+
+func NewAssignment(assignment interface{}) *Assignment {
+	return &Assignment{assignment.(*Node)}
+}
+
+func (a *Assignment) Ref() *Ref {
+	return NewRef(a.node.Values[0])
+}
+
+func (a *Assignment) Value() *Node {
+	return a.node.Values[1].(*Node)
 }

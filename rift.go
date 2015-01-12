@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"rift/lang"
-	"rift/vm"
+	"rift/runtime"
 )
 
 const (
@@ -66,6 +66,8 @@ func build(filenames []string) []*lang.Node {
 }
 
 func run(filenames []string) {
-	vm := vm.New(build(filenames))
+	rifts := build(filenames)
+	dispatcher := runtime.NewLocalDispatcher(rifts)
+	vm := runtime.NewVM(dispatcher)
 	vm.Run()
 }
