@@ -7,6 +7,10 @@ default: clean gengrammar build
 gengrammar:
 	$(POINTLANDER) -inline -switch $(SCRIPTPATH)/src/rift/lang/rift.g
 
+getdeps:
+	GOPATH=$(SCRIPTPATH) $(GO) get github.com/go-llvm/llvm
+	# GOPATH=$(SCRIPTPATH) $(GO) get llvm.org/llvm/bindings/go/llvm
+
 build:
 	GOPATH=$(SCRIPTPATH) $(GO) build -v -o $(SCRIPTPATH)/bin/rift
 

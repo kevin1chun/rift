@@ -6,26 +6,30 @@ type riftParser Peg {
 
 Source     <- sp (Rift sp)+ !.
 
-Rift       <- { p.Start(RIFT) } '@'? LocalRef sp '=>' sp Block { p.End() }
+Rift       <- { p.Start(RIFT) } Gravitasse? LocalRef sp '=>' sp Block { p.End() }
 
 # TODO: Do you have to use an msp here? I wonder if there is another way to delimit lines
 Block      <- '{' sp (Line msp)* '}'
 
-Line       <- Assignment / Expr
+Line       <- Statement / Expr
 
-Expr       <- Op / FuncApply / Value
+Expr       <- FuncApply / Value
 
-Op         <- { p.Start(OP) } Value (sp BinaryOp sp Value)+ { p.End() }
+# Op         <- { p.Start(OP) } Value (sp BinaryOp sp Value)+ { p.End() }
 
-BinaryOp   <- { p.Start(BINOP) } <'+' / '-' / '*' / '/' / '**' / '%'> { p.Emit(string(buffer[begin:end])) } { p.End() }
+# BinaryOp   <- { p.Start(BINOP) } <'+' / '-' / '*' / '/' / '**' / '%'> { p.Emit(string(buffer[begin:end])) } { p.End() }
 
-Assignment <- { p.Start(ASSIGNMENT) } LocalRef sp '=' sp Expr { p.End() }
+Statement  <- Assignment / If
 
-Ref        <- { p.Start(REF) } (FullRef / LocalRef) { p.End() }
+Assignment <- { p.Start(ASSIGNMENT) } Gravitasse? LocalRef sp '=' sp Expr { p.End() }
 
-FullRef    <- <RefChar+> { p.Emit(string(buffer[begin:end])) } ':' <RefChar+> { p.Emit(string(buffer[begin:end])) }
+If         <- { p.Start(IF) } 'if' sp Expr sp Block { p.End() }
 
-LocalRef   <- <RefChar+> { p.Emit(string(buffer[begin:end])) }
+Ref        <- FullRef / LocalRef
+
+FullRef    <- { p.Start(REF) } <RefChar+> { p.Emit(string(buffer[begin:end])) } ':' <RefChar+> { p.Emit(string(buffer[begin:end])) } { p.End() }
+
+LocalRef   <- { p.Start(REF) } <RefChar+> { p.Emit(string(buffer[begin:end])) } { p.End() }
 
 RefChar    <- [[a-z_]]
 
@@ -70,6 +74,8 @@ List       <- { p.Start(LIST) } '[' sp (Expr (sp ',' sp Expr)* sp)? ']' { p.End(
 Tuple      <- { p.Start(TUPLE) } '(' sp (Expr (sp ',' sp Expr)* sp)? ')' { p.End() }
 
 Map        <- { p.Start("map") } '{' sp (Expr sp ':' sp Expr (sp ',' sp Expr sp ':' sp Expr)* sp)? '}' { p.End() }
+
+Gravitasse <- '@'
 
 msp        <- (ws / comment)+
 

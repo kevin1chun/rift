@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"rift/lang"
-	"rift/runtime"
+	// "rift/runtime"
 )
 
 const (
@@ -23,10 +23,10 @@ func main() {
 		printUsage()
 	case len(args) == 1 && args[0] == "version":
 		printVersion()
-	// case len(args) > 1 && args[0] == "build":
-	// 	build(args[1:])
-	case len(args) > 1 && args[0] == "run":
-		run(args[1:])
+	case len(args) > 1 && args[0] == "build":
+		build(args[1:])
+	// case len(args) > 1 && args[0] == "run":
+	// 	run(args[1:])
 	}
 }
 
@@ -34,8 +34,8 @@ func printUsage() {
 	fmt.Printf("Usage: rift COMMAND [ARGS]\n\n" +
 		"COMMANDS\n" +
 		"\tversion\tPrints the Rift version\n" +
-		// "\tbuild\tBuilds the provided source files\n" +
-		"\trun\tBuilds and runs the provided source files\n" +
+		"\tbuild\tBuilds the provided source files\n" +
+		// "\trun\tBuilds and runs the provided source files\n" +
 		"\n")
 	os.Exit(INVALID_ARGS)
 }
@@ -44,7 +44,7 @@ func printVersion() {
 	fmt.Println("rift-v0.1")
 }
 
-func build(filenames []string) []*lang.Node {
+func build(filenames []string) {
 	var rifts []*lang.Node
 	for _, filename := range filenames {
 		source, readErr := os.Open(filename)
@@ -62,12 +62,14 @@ func build(filenames []string) []*lang.Node {
 		rifts = append(rifts, parsed.Rifts()...)
 	}
 
-	return rifts
+	lang.Compile(rifts)
 }
 
-func run(filenames []string) {
-	rifts := build(filenames)
-	dispatcher := runtime.NewLocalDispatcher(rifts)
-	vm := runtime.NewVM(dispatcher)
-	vm.Run()
-}
+// func run(filenames []string) {
+// 	rifts := build(filenames)
+// 	initialCtx := runtime.BuildContext(rifts)
+// 	dispatcher := runtime.LocalDispatcher{}
+// 	vm := runtime.NewVM(&dispatcher)
+// 	vm.SwitchTo(initialCtx)
+// 	vm.Run()
+// }

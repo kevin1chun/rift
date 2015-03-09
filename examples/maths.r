@@ -1,7 +1,10 @@
-@main => {
+math => {
+	sum = (a, b) -> a + b
+}
+
+main => {
 	a = 10
 	b = 20
-	sum = (a, b) -> a + b
-	c = sum(a, b)
+	c = math:sum(a, b)
 	std:println(a, " + ", b, " = ", c)
 }

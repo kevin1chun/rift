@@ -1,4 +1,4 @@
-package lang
+package collections
 // Adaptation from https://gist.github.com/bemasher/1777766
 
 type Stack struct {

@@ -1,3 +1,3 @@
-main => {
+@main => {
 	std:println("Hello, world!")
 }
