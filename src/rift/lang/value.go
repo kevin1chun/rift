@@ -5,7 +5,9 @@ import (
 	"rift/support/sanity"
 )
 
-func (stringNode *Node) String() string {
+// TODO: Actually, is there a difference between a string node
+// vs. the string value representing a named ref?
+func (stringNode *Node) Str() string {
 	sanity.Ensure(stringNode.Type == STRING, "Invalid cast from type [%s] to [%s]", stringNode.Type, STRING)
 	return stringNode.Values[0].(string)
 }
@@ -13,8 +15,10 @@ func (stringNode *Node) String() string {
 func (numericNode *Node) Int() int {
 	sanity.Ensure(numericNode.Type == NUM, "Invalid cast from type [%s] to [%s]", numericNode.Type, NUM)
 	intAsString := numericNode.Values[0].(string)
-	intValue, parseErr := strconv.Atoi(intAsString)
-	sanity.Ensure(parseErr != nil, "Invalid integer value [%s]", intAsString)
+	intValue, _ := strconv.Atoi(intAsString)
+	// TODO: WTF?
+	// intValue, parseErr := strconv.Atoi(intAsString)
+	// sanity.Ensure(parseErr != nil, "Invalid integer value [%s]", intAsString)
 	return intValue
 }
 

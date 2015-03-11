@@ -6,6 +6,7 @@ type riftParser Peg {
 
 Source     <- sp (Rift sp)+ !.
 
+# TODO: Should gravitasse be allowable for any ref?
 Rift       <- { p.Start(RIFT) } Gravitasse? LocalRef sp '=>' sp Block { p.End() }
 
 # TODO: Do you have to use an msp here? I wonder if there is another way to delimit lines
@@ -13,15 +14,17 @@ Block      <- '{' sp (Line msp)* '}'
 
 Line       <- Statement / Expr
 
-Expr       <- FuncApply / Value
+Expr       <- Op / FuncApply / Value
 
-# Op         <- { p.Start(OP) } Value (sp BinaryOp sp Value)+ { p.End() }
+Op         <- { p.Start(OP) } Value (sp BinaryOp sp Value)+ { p.End() }
 
-# BinaryOp   <- { p.Start(BINOP) } <'+' / '-' / '*' / '/' / '**' / '%'> { p.Emit(string(buffer[begin:end])) } { p.End() }
+# TODO: Break down by operator type? 
+# TODO: Should we even treat operators specially?
+BinaryOp   <- { p.Start(BINOP) } <'+' / '-' / '*' / '/' / '**' / '%'> { p.Emit(string(buffer[begin:end])) } { p.End() }
 
 Statement  <- Assignment / If
 
-Assignment <- { p.Start(ASSIGNMENT) } Gravitasse? LocalRef sp '=' sp Expr { p.End() }
+Assignment <- { p.Start(ASSIGNMENT) } LocalRef sp '=' sp Expr { p.End() }
 
 If         <- { p.Start(IF) } 'if' sp Expr sp Block { p.End() }
 

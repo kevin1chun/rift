@@ -16,7 +16,7 @@ func BuildContext(nodes []*lang.Node) *Context {
 		switch {
 		default:
 		case head.Type == lang.REF:
-			ctx.Inject(lang.NewRef(head).String(), node)
+			// ctx.Inject(lang.Ref{head}.String(), node)
 		}
 	}
 	return &ctx	

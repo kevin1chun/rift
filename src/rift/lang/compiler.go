@@ -4,27 +4,6 @@ import (
 	"rift/support/logging"
 )
 
-// const (
-// 	RIFT  = "rift"
-// 	FUNC = "function-definition"
-// 	FUNCAPPLY = "function-apply"
-// 	ARGS = "arguments"
-// 	TUPLE = "tuple"
-// 	LIST = "list"
-// 	ASSIGNMENT = "assignment"
-// 	IF = "if"
-// 	STRING = "string"
-// 	NUM = "numeric"
-// 	BOOL = "boolean"
-// 	REF = "reference"
-// 	OP = "operation"
-// 	BINOP = "binary-operator"
-// )
-
-const (
-	
-)
-
 func mainRift(riftDefs []*Node) *Rift {
 	for _, riftDef := range riftDefs {
 		rift := riftDef.Rift()
@@ -38,7 +17,16 @@ func mainRift(riftDefs []*Node) *Rift {
 
 func Compile(rifts []*Node) {
 	if main := mainRift(rifts); main != nil {
-		logging.Info("Found rift [main]: %s", main)
+		for _, line := range main.Lines() {
+			switch line.Type{
+			case ASSIGNMENT:
+				assignment := line.Assignment()
+				logging.Info("Assigning to ref [%s] the value [%s]", assignment.Ref(), assignment.Value())
+			case FUNCAPPLY:
+				funcApply := line.FuncApply()
+				logging.Info("Apply func [%s] with args [%s]", funcApply.Ref(), funcApply.Args())
+			}
+		}
 	} else {
 		logging.Warn("No such rift [main]")
 	}

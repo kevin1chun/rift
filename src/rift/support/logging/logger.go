@@ -18,7 +18,7 @@ var CurrentLevel Level = DEBUG
 
 func log(level Level, levelName string, msg string, args...interface{}) {
 	if level >= CurrentLevel {
-		fmt.Printf("[%s] %s\n", levelName, fmt.Sprintf(msg, args))
+		fmt.Printf("[%s] %s\n", levelName, fmt.Sprintf(msg, args...))
 	}
 }
 

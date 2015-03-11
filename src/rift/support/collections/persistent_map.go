@@ -32,3 +32,11 @@ func (m *PersistentMap) Get(key interface{}, defaultValue interface{}) interface
 func (m *PersistentMap) GetOrNil(key interface{}) interface{} {
 	return m.Get(key, nil)
 }
+
+func (m *PersistentMap) Freeze() map[interface{}]interface{} {
+	frozen := make(map[interface{}]interface{})
+	for k, v := range m.mappings {
+		frozen[k] = v[0]
+	}
+	return frozen
+}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"rift/lang"
-	// "rift/runtime"
+	"rift/runtime"
 )
 
 const (
@@ -25,8 +25,8 @@ func main() {
 		printVersion()
 	case len(args) > 1 && args[0] == "build":
 		build(args[1:])
-	// case len(args) > 1 && args[0] == "run":
-	// 	run(args[1:])
+	case len(args) > 1 && args[0] == "run":
+		run(args[1:])
 	}
 }
 
@@ -44,7 +44,7 @@ func printVersion() {
 	fmt.Println("rift-v0.1")
 }
 
-func build(filenames []string) {
+func build(filenames []string) []*lang.Node {
 	var rifts []*lang.Node
 	for _, filename := range filenames {
 		source, readErr := os.Open(filename)
@@ -62,14 +62,15 @@ func build(filenames []string) {
 		rifts = append(rifts, parsed.Rifts()...)
 	}
 
-	lang.Compile(rifts)
+	return rifts
 }
 
-// func run(filenames []string) {
-// 	rifts := build(filenames)
-// 	initialCtx := runtime.BuildContext(rifts)
-// 	dispatcher := runtime.LocalDispatcher{}
-// 	vm := runtime.NewVM(&dispatcher)
-// 	vm.SwitchTo(initialCtx)
-// 	vm.Run()
-// }
+func run(filenames []string) {
+	rifts := build(filenames)
+	runtime.Run(rifts)
+	// initialCtx := runtime.BuildContext(rifts)
+	// dispatcher := runtime.LocalDispatcher{}
+	// vm := runtime.NewVM(&dispatcher)
+	// vm.SwitchTo(initialCtx)
+	// vm.Run()
+}

@@ -1,7 +1,9 @@
 package lang
 
 import (
+	"fmt"
 	"strings"
+	"rift/support/logging"
 	"rift/support/sanity"
 )
 
@@ -41,13 +43,18 @@ func (n *Node) Rift() *Rift {
 }
 
 func (n *Node) Ref() *Ref {
-	sanity.Ensure(n.Type == RIFT, "Node must be [%s], but was [%s]", REF, n.Type)
+	sanity.Ensure(n.Type == REF, "Node must be [%s], but was [%s]", REF, n.Type)
 	return &Ref{n}
 }
 
 func (n *Node) Assignment() *Assignment {
 	sanity.Ensure(n.Type == ASSIGNMENT, "Node must be [%s], but was [%s]", ASSIGNMENT, n.Type)
 	return &Assignment{n}
+}
+
+func (n *Node) FuncApply() *FuncApply {
+	sanity.Ensure(n.Type == FUNCAPPLY, "Node must be [%s], but was [%s]", FUNCAPPLY, n.Type)
+	return &FuncApply{n}
 }
 
 type Rift struct{
@@ -78,6 +85,7 @@ func (r *Rift) Lines() []*Node {
 func (r *Rift) Assignments() []*Assignment {
 	var assignments []*Assignment
 	for _, line := range r.Lines() {
+		logging.Info("Type: %s", line.Type)
 		if line.Type == ASSIGNMENT {
 			assignments = append(assignments, line.Assignment())
 		}
@@ -89,16 +97,17 @@ func (r *Rift) Assignments() []*Assignment {
 func (r *Rift) Protocol() map[string]*Node {
 	proto := make(map[string]*Node)
 	for _, assignment := range r.Assignments() {
-		value := assignment.Value()
-		if value.Type == FUNC {
-			proto[assignment.Ref().Name()] = assignment.Value()
-		}
+		proto[assignment.Ref().Name()] = assignment.Value()
 	}
 	return proto
 }
 
 func (r *Rift) HasGravity() bool {
 	return strings.HasPrefix(r.RawName(), "@")
+}
+
+func (r *Rift) String() string {
+	return ToLisp(r.node)
 }
 
 type Ref struct{
@@ -113,15 +122,15 @@ func (r *Ref) Rift() string {
 	if r.IsLocal() {
 		return "_"
 	} else {
-		return r.node.Values[0].(*Node).String()
+		return r.node.Values[0].(*Node).Str()
 	}
 }
 
 func (r *Ref) RawName() string {
 	if r.IsLocal() {
-		return r.node.Values[0].(*Node).String()
+		return r.node.Values[0].(*Node).Str()
 	} else {
-		return r.node.Values[1].(*Node).String()
+		return r.node.Values[1].(*Node).Str()
 	}
 }
 
@@ -135,7 +144,7 @@ func (r *Ref) Name() string {
 }
 
 func (r *Ref) HasGravity() bool {
-	scoping := r.node.Values[0].(*Node).String()
+	scoping := r.node.Values[0].(*Node).Str()
 	if r.IsLocal() {
 		return strings.HasPrefix(scoping, "@")
 	} else {
@@ -146,7 +155,7 @@ func (r *Ref) HasGravity() bool {
 func (r *Ref) String() string {
 	var nameParts []string
 	for _, value := range r.node.Values {
-		nameParts = append(nameParts, value.(*Node).String())
+		nameParts = append(nameParts, value.(string))
 	}
 	return strings.Join(nameParts, ":")
 }
@@ -155,20 +164,32 @@ type FuncApply struct{
 	node *Node
 }
 
-func NewFuncApply(funcApply interface{}) *FuncApply {
-	return &FuncApply{funcApply.(*Node)}
-}
-
 func (fa *FuncApply) Ref() *Ref {
-	return fa.node.Values[0].(*Node).Ref()
+	return &Ref{fa.node.Values[0].(*Node)}
 }
 
-func (fa *FuncApply) Args() []*Node {
-	var values []*Node
-	for _, value := range fa.node.Values[1].(*Node).Values {
-		values = append(values, value.(*Node))
+func (fa *FuncApply) Args() *Tuple {
+	return &Tuple{fa.node.Values[1].(*Node)}
+}
+
+type Tuple struct{
+	node *Node
+}
+
+func (t *Tuple) Arity() int {
+	return len(t.node.Values)
+}
+
+func (t *Tuple) Values() []interface{} {
+	return t.node.Values
+}
+
+func (t *Tuple) String() string {
+	var values []string
+	for _, value := range t.Values() {
+		values = append(values, fmt.Sprintf("%s", value))
 	}
-	return values
+	return "(" + strings.Join(values, ", ") + ")"
 }
 
 type Assignment struct{
