@@ -57,6 +57,11 @@ func (n *Node) FuncApply() *FuncApply {
 	return &FuncApply{n}
 }
 
+func (n *Node) Operation() *Operation {
+	sanity.Ensure(n.Type == OP, "Node must be [%s], but was [%s]", OP, n.Type)
+	return &Operation{n}
+}
+
 type Rift struct{
 	node *Node
 }
@@ -204,3 +209,19 @@ func (a *Assignment) Value() *Node {
 	return a.node.Values[1].(*Node)
 }
 
+
+type Operation struct{
+	node *Node
+}
+
+func (o *Operation) Operator() string {
+	return o.node.Values[1].(*Node).Values[0].(string)
+}
+
+func (o *Operation) LHS() *Node {
+	return o.node.Values[0].(*Node)
+}
+
+func (o *Operation) RHS() *Node {
+	return o.node.Values[2].(*Node)
+}

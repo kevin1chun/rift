@@ -14,13 +14,15 @@ Block      <- '{' sp (Line msp)* '}'
 
 Line       <- Statement / Expr
 
-Expr       <- Op / FuncApply / Value
+Single     <- FuncApply / Value
 
-Op         <- { p.Start(OP) } Value (sp BinaryOp sp Value)+ { p.End() }
+Expr       <- Op / Single
+
+Op         <- { p.Start(OP) } Single (sp BinaryOp sp Single)+ { p.End() }
 
 # TODO: Break down by operator type? 
 # TODO: Should we even treat operators specially?
-BinaryOp   <- { p.Start(BINOP) } <'+' / '-' / '*' / '/' / '**' / '%'> { p.Emit(string(buffer[begin:end])) } { p.End() }
+BinaryOp   <- { p.Start(BINOP) } <'**' / '+' / '-' / '*' / '/' / '%'> { p.Emit(string(buffer[begin:end])) } { p.End() }
 
 Statement  <- Assignment / If
 

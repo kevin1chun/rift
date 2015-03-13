@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	RIFT_VERSION = "v0.1-alpha"
 	INVALID_ARGS = 0
 	INVALID_FILE = 1
 	SYNTAX_ERROR = 2
@@ -23,8 +24,8 @@ func main() {
 		printUsage()
 	case len(args) == 1 && args[0] == "version":
 		printVersion()
-	case len(args) > 1 && args[0] == "build":
-		build(args[1:])
+	// case len(args) > 1 && args[0] == "build":
+	// 	build(args[1:])
 	case len(args) > 1 && args[0] == "run":
 		run(args[1:])
 	}
@@ -34,14 +35,14 @@ func printUsage() {
 	fmt.Printf("Usage: rift COMMAND [ARGS]\n\n" +
 		"COMMANDS\n" +
 		"\tversion\tPrints the Rift version\n" +
-		"\tbuild\tBuilds the provided source files\n" +
-		// "\trun\tBuilds and runs the provided source files\n" +
+		// "\tbuild\tBuilds the provided source files\n" +
+		"\trun\tBuilds and runs the provided source files\n" +
 		"\n")
 	os.Exit(INVALID_ARGS)
 }
 
 func printVersion() {
-	fmt.Println("rift-v0.1")
+	fmt.Printf("rift-%s\n", RIFT_VERSION)
 }
 
 func build(filenames []string) []*lang.Node {
