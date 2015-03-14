@@ -3,7 +3,6 @@ package lang
 import (
 	"fmt"
 	"strings"
-	"rift/support/logging"
 	"rift/support/sanity"
 )
 
@@ -57,6 +56,11 @@ func (n *Node) FuncApply() *FuncApply {
 	return &FuncApply{n}
 }
 
+func (n *Node) Func() *Func {
+	sanity.Ensure(n.Type == FUNC, "Node must be [%s], but was [%s]", FUNC, n.Type)
+	return &Func{n}
+}
+
 func (n *Node) Operation() *Operation {
 	sanity.Ensure(n.Type == OP, "Node must be [%s], but was [%s]", OP, n.Type)
 	return &Operation{n}
@@ -87,32 +91,32 @@ func (r *Rift) Lines() []*Node {
 	return lines
 }
 
-func (r *Rift) Assignments() []*Assignment {
-	var assignments []*Assignment
-	for _, line := range r.Lines() {
-		logging.Info("Type: %s", line.Type)
-		if line.Type == ASSIGNMENT {
-			assignments = append(assignments, line.Assignment())
-		}
-	}
-	return assignments
-}
-
-// TODO: Should this somehow be separate from the main code?
-func (r *Rift) Protocol() map[string]*Node {
-	proto := make(map[string]*Node)
-	for _, assignment := range r.Assignments() {
-		proto[assignment.Ref().Name()] = assignment.Value()
-	}
-	return proto
-}
-
 func (r *Rift) HasGravity() bool {
 	return strings.HasPrefix(r.RawName(), "@")
 }
 
 func (r *Rift) String() string {
 	return ToLisp(r.node)
+}
+
+type Func struct{
+	node *Node
+}
+
+func (f *Func) Args() []*Ref {
+	var args []*Ref
+	for _, arg := range f.node.Values[0].(*Node).Values {
+		args = append(args, arg.(*Node).Ref())
+	}
+	return args
+}
+
+func (f *Func) Lines() []*Node {
+	var lines []*Node
+	for _, line := range f.node.Values[1:] {
+		lines = append(lines, line.(*Node))
+	}
+	return lines
 }
 
 type Ref struct{

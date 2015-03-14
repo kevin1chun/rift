@@ -38,7 +38,7 @@ func dereference(env collections.PersistentMap, ref *lang.Ref) interface{} {
 
 func doAssignment(env collections.PersistentMap, assignment *lang.Assignment) interface{} {
 	// TODO: Is lazy assignment okay here?
-	env.Set(assignment.Ref().String(), assignment.Value())
+	env.Set(assignment.Ref().String(), evaluate(env, assignment.Value()))
 	return nil
 }
 
@@ -65,6 +65,22 @@ func doOperation(env collections.PersistentMap, op *lang.Operation) interface{} 
 	}
 }
 
+func makeFunc(f *lang.Func) func([]interface{}) interface{} {
+	return func(args []interface{}) interface{} {
+		// TODO: Assert arg list lengths match
+		env := collections.NewPersistentMap()
+		for i, argRef := range f.Args() {
+			env.Set(argRef.String(), args[i])
+		}
+		
+		var lastValue interface{}
+		for _, line := range f.Lines() {
+			lastValue = evaluate(env, line)
+		}
+		return lastValue
+	}
+}
+
 func evaluate(env collections.PersistentMap, a *lang.Node) interface{} {
 	switch a.Type {
 	default:
@@ -76,7 +92,9 @@ func evaluate(env collections.PersistentMap, a *lang.Node) interface{} {
 	case lang.FUNCAPPLY:
 		return doFuncApply(env, a.FuncApply())
 	case lang.REF:
-		return evaluate(env, dereference(env, a.Ref()).(*lang.Node)) 
+		return dereference(env, a.Ref())
+	case lang.FUNC:
+		return makeFunc(a.Func())
 	case lang.STRING:
 		return a.Str()
 	case lang.NUM:
