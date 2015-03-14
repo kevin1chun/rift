@@ -4,6 +4,14 @@ type PersistentMap struct{
 	mappings map[interface{}][]interface{}
 }
 
+func ExtendPersistentMap(orig map[interface{}]interface{}) PersistentMap {
+	pm := NewPersistentMap()
+	for k, v := range orig {
+		pm.Set(k, v)
+	}
+	return pm
+}
+
 func NewPersistentMap() PersistentMap {
 	return PersistentMap{make(map[interface{}][]interface{})}
 }

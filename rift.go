@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"rift/lang"
+	"rift/support/logging"
 	"rift/runtime"
 )
 
@@ -16,12 +17,19 @@ const (
 )
 
 func main() {
-	flag.Parse()
-	args := flag.Args()
+	flags := flag.NewFlagSet("rift", flag.ExitOnError)
+	flags.Usage = printUsage
+	logLevel := flags.String("log", "fatal", "")
+	
+	flags.Parse(os.Args[1:])
+
+	logging.CurrentLevel = logging.ToLevel(*logLevel)
+
+	args := flags.Args()
 
 	switch {
 	default:
-		printUsage()
+		flags.Usage()
 	case len(args) == 1 && args[0] == "version":
 		printVersion()
 	// case len(args) > 1 && args[0] == "build":
@@ -32,11 +40,14 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Printf("Usage: rift COMMAND [ARGS]\n\n" +
+	fmt.Printf("Usage: rift [OPTIONS] COMMAND [ARGS]\n\n" +
+		"OPTIONS\n" +
+		"\t--log LEVEL\tSets the log level (default is \"FATAL\")\n" +
+		"\n" +
 		"COMMANDS\n" +
-		"\tversion\tPrints the Rift version\n" +
+		"\tversion\t\tPrints the Rift version\n" +
 		// "\tbuild\tBuilds the provided source files\n" +
-		"\trun\tBuilds and runs the provided source files\n" +
+		"\trun\t\tBuilds and runs the provided source files\n" +
 		"\n")
 	os.Exit(INVALID_ARGS)
 }

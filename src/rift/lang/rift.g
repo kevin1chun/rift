@@ -22,13 +22,15 @@ Op         <- { p.Start(OP) } Single (sp BinaryOp sp Single)+ { p.End() }
 
 # TODO: Break down by operator type? 
 # TODO: Should we even treat operators specially?
-BinaryOp   <- { p.Start(BINOP) } <'**' / '+' / '-' / '*' / '/' / '%'> { p.Emit(string(buffer[begin:end])) } { p.End() }
+BinaryOp   <- { p.Start(BINOP) } <'**' / '>=' / '<=' / '==' / '+' / '-' / '*' / '/' / '%' / '>' / '<'> { p.Emit(string(buffer[begin:end])) } { p.End() }
 
 Statement  <- Assignment / If
 
 Assignment <- { p.Start(ASSIGNMENT) } LocalRef sp '=' sp Expr { p.End() }
 
-If         <- { p.Start(IF) } 'if' sp Expr sp Block { p.End() }
+If         <- { p.Start(IF) } 'if' sp Expr sp Block (sp Else)? { p.End() }
+
+Else       <- { p.Start(ELSE) } 'else' sp Block { p.End() }
 
 Ref        <- FullRef / LocalRef
 

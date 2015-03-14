@@ -2,6 +2,7 @@ package logging
 
 import (
 	"fmt"
+	"strings"
 )
 
 type Level int
@@ -13,12 +14,27 @@ const (
 	FATAL
 )
 
-// TODO: Thread-safety
-var CurrentLevel Level = DEBUG
+// TODO: Thread-safety?
+var CurrentLevel Level = FATAL
+
+func ToLevel(levelString string) Level {
+	switch strings.ToLower(levelString) {
+	default:
+		return CurrentLevel
+	case "debug":
+		return DEBUG
+	case "info":
+		return INFO
+	case "warn":
+		return WARN
+	case "fatal":
+		return FATAL
+	}
+}
 
 func log(level Level, levelName string, msg string, args...interface{}) {
 	if level >= CurrentLevel {
-		fmt.Printf("[%s] %s\n", levelName, fmt.Sprintf(msg, args...))
+		fmt.Printf("[%s] %s\n", strings.ToUpper(levelName), fmt.Sprintf(msg, args...))
 	}
 }
 

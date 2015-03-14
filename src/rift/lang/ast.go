@@ -15,6 +15,7 @@ const (
 	LIST = "list"
 	ASSIGNMENT = "assignment"
 	IF = "if"
+	ELSE = "else"
 	STRING = "string"
 	NUM = "numeric"
 	BOOL = "boolean"
@@ -59,6 +60,11 @@ func (n *Node) FuncApply() *FuncApply {
 func (n *Node) Func() *Func {
 	sanity.Ensure(n.Type == FUNC, "Node must be [%s], but was [%s]", FUNC, n.Type)
 	return &Func{n}
+}
+
+func (n *Node) If() *If {
+	sanity.Ensure(n.Type == IF, "Node must be [%s], but was [%s]", IF, n.Type)
+	return &If{n}
 }
 
 func (n *Node) Operation() *Operation {
@@ -213,6 +219,21 @@ func (a *Assignment) Value() *Node {
 	return a.node.Values[1].(*Node)
 }
 
+type If struct{
+	node *Node
+}
+
+func (i *If) Condition() interface{} {
+	return i.node.Values[0]
+}
+
+func (i *If) Lines() []*Node {
+	var lines []*Node
+	for _, line := range i.node.Values[1:] {
+		lines = append(lines, line.(*Node))
+	}
+	return lines
+}
 
 type Operation struct{
 	node *Node
