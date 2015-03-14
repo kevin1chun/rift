@@ -9,6 +9,11 @@ import (
 	"rift/support/sanity"
 )
 
+// TODO: Better organization
+// TODO: Consistency in when things are evaluated
+// TODO: Remote dereference/dispatch
+// TODO: Gravitasse
+
 func mainRift(riftDefs []*lang.Node) *lang.Rift {
 	for _, riftDef := range riftDefs {
 		rift := riftDef.Rift()
@@ -124,7 +129,7 @@ func Run(rifts []*lang.Node) {
 		for _, line := range main.Lines() {
 			evaluate(env, line)
 		}
-		// logging.Debug("Final environment: %+v", env.Freeze())
+		logging.Debug("Final environment: %+v", env.Freeze())
 	} else {
 		logging.Warn("No such rift [main]")
 	}
