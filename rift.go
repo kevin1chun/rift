@@ -19,35 +19,33 @@ const (
 func main() {
 	flags := flag.NewFlagSet("rift", flag.ExitOnError)
 	flags.Usage = printUsage
-	logLevel := flags.String("log", "fatal", "")
+
+	showVersion  := flags.Bool("version", false, "Prints this version of Rift")
+	debug := flags.Bool("verbose", false, "")
 	
 	flags.Parse(os.Args[1:])
 
-	logging.CurrentLevel = logging.ToLevel(*logLevel)
+	if *debug {
+		logging.CurrentLevel = logging.DEBUG
+	}
 
 	args := flags.Args()
 
 	switch {
 	default:
 		flags.Usage()
-	case len(args) == 1 && args[0] == "version":
+	case *showVersion:
 		printVersion()
-	// case len(args) > 1 && args[0] == "build":
-	// 	build(args[1:])
-	case len(args) > 1 && args[0] == "run":
-		run(args[1:])
+	case len(args) >= 1:
+		run(args)
 	}
 }
 
 func printUsage() {
-	fmt.Printf("Usage: rift [OPTIONS] COMMAND [ARGS]\n\n" +
+	fmt.Printf("Usage: rift [OPTIONS] [FILES]\n\n" +
 		"OPTIONS\n" +
-		"\t--log LEVEL\tSets the log level (default is \"FATAL\")\n" +
-		"\n" +
-		"COMMANDS\n" +
-		"\tversion\t\tPrints the Rift version\n" +
-		// "\tbuild\tBuilds the provided source files\n" +
-		"\trun\t\tBuilds and runs the provided source files\n" +
+		"  --verbose Prints verbose Rift interpreter logs\n" +
+		"  --version Prints the Rift version\n" +
 		"\n")
 	os.Exit(INVALID_ARGS)
 }

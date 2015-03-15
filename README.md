@@ -9,16 +9,16 @@ make
 ### Usage
 
 ```bash
-Usage: rift COMMAND [ARGS]
+Usage: rift [OPTIONS] [FILES]
 
-COMMANDS
-	version Prints the Rift version
-	run     Builds and runs the provided source files
+OPTIONS
+  --verbose Prints verbose Rift interpreter logs
+  --version Prints the Rift version
 ```
 
 ### Running the example code
 
 After building the Rift interpreter, run:
 ```bash
-./bin/rift run examples/hello_rift.r
+./bin/rift examples/hello_rift.r
 ```
