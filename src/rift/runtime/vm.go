@@ -1,8 +1,6 @@
 package runtime
 
 import (
-	"fmt"
-	"strings"
 	"rift/lang"
 	"rift/support/collections"
 	"rift/support/logging"
@@ -14,6 +12,8 @@ import (
 // TODO: Remote dereference/dispatch
 // TODO: Gravitasse
 // TODO: Is `nil` okay for void ops?
+// TODO: Support multiple rifts in references
+// TODO: Tail-call optimization
 
 func mainRift(riftDefs []*lang.Node) *lang.Rift {
 	for _, riftDef := range riftDefs {
@@ -26,18 +26,8 @@ func mainRift(riftDefs []*lang.Node) *lang.Rift {
 	return nil
 }
 
-func fillPredefs(env collections.PersistentMap) {
-	env.Set("std:println", func(args []interface{}) interface{} {
-		var stringedArgs []string
-		for _, arg := range args {
-			stringedArgs = append(stringedArgs, fmt.Sprintf("%v", arg))
-		}
-		fmt.Println(strings.Join(stringedArgs, ""))
-		return nil
-	})
-}
-
 func dereference(env collections.PersistentMap, ref *lang.Ref) interface{} {
+	// TODO: Support multi-rift scenario
 	sanity.Ensure(env.Contains(ref.String()), "Undefined reference to [%s]", ref.String())
 	return env.GetOrNil(ref.String())
 }
@@ -49,42 +39,17 @@ func doAssignment(env collections.PersistentMap, assignment *lang.Assignment) in
 }
 
 func doOperation(env collections.PersistentMap, op *lang.Operation) interface{} {
-	// TODO: Right now must both be numeric
-	lhsValue := evaluate(env, op.LHS()).(int)
-	rhsValue := evaluate(env, op.RHS()).(int)
-	switch op.Operator() {
-	default:
-		return nil
-	case "+":
-		return lhsValue + rhsValue
-	case "-":
-		return lhsValue - rhsValue
-	case "*":
-		return lhsValue * rhsValue
-	case "/":
-		return lhsValue / rhsValue
-	case "**":
-		// TODO: Oops
-		return lhsValue * rhsValue
-	case "%":
-		return lhsValue % rhsValue
-	case "<":
-		return lhsValue < rhsValue
-	case ">":
-		return lhsValue > rhsValue
-	case "<=":
-		return lhsValue <= rhsValue
-	case ">=":
-		return lhsValue >= rhsValue
-	case "==":
-		return lhsValue == rhsValue
-	}
+	lhsValue := evaluate(env, op.LHS())
+	rhsValue := evaluate(env, op.RHS())
+	// TODO: Handle boolean logic elsewhere
+	// TODO: What to do about operator overloading
+	return doMath(lhsValue, rhsValue, op.Operator())
 }
 
 func makeFunc(outerEnv collections.PersistentMap, f *lang.Func) func([]interface{}) interface{} {
 	return func(args []interface{}) interface{} {
 		// TODO: Assert arg list lengths match
-		env := collections.ExtendPersistentMap(outerEnv.Freeze())
+		env := collections.ExtendPersistentMap(outerEnv)
 		for i, argRef := range f.Args() {
 			env.Set(argRef.String(), args[i])
 		}
@@ -151,12 +116,15 @@ func Run(rifts []*lang.Node) {
 	// TODO: Oops this only supports one rift :)
 	if main := mainRift(rifts); main != nil {
 		// ctx := collections.Stack{}
-		env := collections.NewPersistentMap()
-		fillPredefs(env)
+		InitPredefs()
+		env := collections.ExtendPersistentMap(Predefs)
 		for _, line := range main.Lines() {
 			evaluate(env, line)
 		}
-		logging.Debug("Final environment: %+v", env.Freeze())
+		logging.Debug("Final environment:")
+		for k, v := range env.Freeze() {
+			logging.Debug(" |- %s = %+v", k, v)
+		}
 	} else {
 		logging.Warn("No such rift [main]")
 	}

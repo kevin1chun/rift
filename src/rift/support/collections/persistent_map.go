@@ -4,9 +4,9 @@ type PersistentMap struct{
 	mappings map[interface{}][]interface{}
 }
 
-func ExtendPersistentMap(orig map[interface{}]interface{}) PersistentMap {
+func ExtendPersistentMap(orig PersistentMap) PersistentMap {
 	pm := NewPersistentMap()
-	for k, v := range orig {
+	for k, v := range orig.Freeze() {
 		pm.Set(k, v)
 	}
 	return pm
