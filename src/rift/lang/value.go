@@ -15,10 +15,8 @@ func (stringNode *Node) Str() string {
 func (numericNode *Node) Int() int {
 	sanity.Ensure(numericNode.Type == NUM, "Invalid cast from type [%s] to [%s]", numericNode.Type, NUM)
 	intAsString := numericNode.Values[0].(string)
-	intValue, _ := strconv.Atoi(intAsString)
-	// TODO: WTF?
-	// intValue, parseErr := strconv.Atoi(intAsString)
-	// sanity.Ensure(parseErr != nil, "Invalid integer value [%s]", intAsString)
+	intValue, parseErr := strconv.Atoi(intAsString)
+	sanity.Ensure(parseErr == nil, "Invalid integer value [%s]", intAsString)
 	return intValue
 }
 
