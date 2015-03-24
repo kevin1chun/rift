@@ -109,7 +109,11 @@ func doFuncApply(env collections.PersistentMap, funcApply *lang.FuncApply) inter
 		argValue := evaluate(env, arg.(*lang.Node))
 		argValues = append(argValues, argValue)	
 	}
-	return f(argValues)
+	returnValue := make(chan interface{}, 1)
+	go func() {
+		returnValue <- f(argValues)
+	}()
+	return <-returnValue
 }
 
 func Run(rifts []*lang.Node) {
