@@ -8,6 +8,7 @@ import (
 
 const (
 	RIFT  = "rift"
+	BLOCK = "block"
 	FUNC = "function-definition"
 	FUNCAPPLY = "function-apply"
 	ARGS = "arguments"
@@ -15,7 +16,6 @@ const (
 	LIST = "list"
 	ASSIGNMENT = "assignment"
 	IF = "if"
-	ELSE = "else"
 	STRING = "string"
 	NUM = "numeric"
 	BOOL = "boolean"
@@ -72,6 +72,11 @@ func (n *Node) Operation() *Operation {
 	return &Operation{n}
 }
 
+func (n *Node) Block() *Block {
+	sanity.Ensure(n.Type == BLOCK, "Node must be [%s], but was [%s]", BLOCK, n.Type)
+	return &Block{n}	
+}
+
 type Rift struct{
 	node *Node
 }
@@ -90,11 +95,7 @@ func (r *Rift) Name() string {
 }
 
 func (r *Rift) Lines() []*Node {
-	var lines []*Node
-	for _, line := range r.node.Values[1:] {
-		lines = append(lines, line.(*Node))
-	}
-	return lines
+	return r.node.Values[1].(*Node).Block().Lines()
 }
 
 func (r *Rift) HasGravity() bool {
@@ -103,6 +104,18 @@ func (r *Rift) HasGravity() bool {
 
 func (r *Rift) String() string {
 	return ToLisp(r.node)
+}
+
+type Block struct{
+	node *Node
+}
+
+func (b *Block) Lines() []*Node {
+	var lines []*Node
+	for _, line := range b.node.Values {
+		lines = append(lines, line.(*Node))
+	}
+	return lines
 }
 
 type Func struct{
@@ -118,11 +131,12 @@ func (f *Func) Args() []*Ref {
 }
 
 func (f *Func) Lines() []*Node {
-	var lines []*Node
-	for _, line := range f.node.Values[1:] {
-		lines = append(lines, line.(*Node))
+	body := f.node.Values[1].(*Node)
+	if body.Type == BLOCK {
+		return f.node.Values[1].(*Node).Block().Lines()
+	} else {
+		return []*Node{f.node.Values[1].(*Node)}
 	}
-	return lines
 }
 
 type Ref struct{
@@ -228,11 +242,16 @@ func (i *If) Condition() interface{} {
 }
 
 func (i *If) Lines() []*Node {
-	var lines []*Node
-	for _, line := range i.node.Values[1:] {
-		lines = append(lines, line.(*Node))
+	return i.node.Values[1].(*Node).Block().Lines()
+}
+
+func (i *If) ElseLines() []*Node {
+	if len(i.node.Values) == 3 {
+		elsePart := i.node.Values[2].(*Node).Block()
+		return elsePart.Lines()
+	} else {
+		return []*Node{}		
 	}
-	return lines
 }
 
 type Operation struct{

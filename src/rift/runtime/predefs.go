@@ -8,8 +8,6 @@ import (
 	"rift/support/logging"
 )
 
-// TODO: Type checks on arguments
-
 var Predefs collections.PersistentMap
 
 func InitPredefs() {

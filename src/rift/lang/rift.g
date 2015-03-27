@@ -10,13 +10,13 @@ Source     <- sp (Rift sp)+ !.
 Rift       <- { p.Start(RIFT) } Gravitasse? LocalRef sp '=>' sp Block { p.End() }
 
 # TODO: Do you have to use an msp here? I wonder if there is another way to delimit lines
-Block      <- '{' sp (Line msp)* '}'
+Block      <- { p.Start(BLOCK) } '{' sp (Line msp)* '}' { p.End() }
 
 Line       <- Statement / Expr
 
-Single     <- FuncApply / Value
+Expr       <- If / Op / Single
 
-Expr       <- Op / Single
+Single     <- FuncApply / Value
 
 Op         <- { p.Start(OP) } Single (sp BinaryOp sp Single)+ { p.End() }
 
@@ -28,9 +28,7 @@ Statement  <- Assignment / If
 
 Assignment <- { p.Start(ASSIGNMENT) } LocalRef sp '=' sp Expr { p.End() }
 
-If         <- { p.Start(IF) } 'if' sp Expr sp Block (sp Else)? { p.End() }
-
-Else       <- { p.Start(ELSE) } 'else' sp Block { p.End() }
+If         <- { p.Start(IF) } 'if' sp Expr sp Block (sp 'else' sp Block)? { p.End() }
 
 Ref        <- FullRef / LocalRef
 
@@ -40,7 +38,7 @@ LocalRef   <- { p.Start(REF) } <RefChar+> { p.Emit(string(buffer[begin:end])) } 
 
 RefChar    <- [[a-z_]]
 
-Value      <- Ref / Literal
+Value      <- Literal / Ref
 
 Literal    <- Func / Scalar / Vector
 
