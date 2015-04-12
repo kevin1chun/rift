@@ -74,7 +74,12 @@ func (n *Node) Operation() *Operation {
 
 func (n *Node) Block() *Block {
 	sanity.Ensure(n.Type == BLOCK, "Node must be [%s], but was [%s]", BLOCK, n.Type)
-	return &Block{n}	
+	return &Block{n}
+}
+
+func (n *Node) List() *List {
+	sanity.Ensure(n.Type == LIST, "Node must be [%s], but was [%s]", LIST, n.Type)
+	return &List{n}
 }
 
 type Rift struct{
@@ -268,4 +273,28 @@ func (o *Operation) LHS() *Node {
 
 func (o *Operation) RHS() *Node {
 	return o.node.Values[2].(*Node)
+}
+
+type List struct{
+	node *Node
+}
+
+func (l *List) Values() []*Node {
+	var values []*Node
+	for _, value := range l.node.Values {
+		values = append(values, value.(*Node))
+	}
+	return values
+}
+
+type ListAccess struct{
+	node *Node
+}
+
+func (la *ListAccess) List() *List {
+	return la.node.Values[0].(*Node).List()
+}
+
+func (la *ListAccess) Index() *Node {
+	return la.node.Values[1].(*Node)
 }

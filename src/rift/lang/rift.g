@@ -14,11 +14,11 @@ Block      <- { p.Start(BLOCK) } '{' sp (Line msp)* '}' { p.End() }
 
 Line       <- Statement / Expr
 
-Expr       <- If / Op / Single
+Expr       <- (!Op Single) / Op
 
-Single     <- FuncApply / Value
+Single     <- If / FuncApply / Value
 
-Op         <- { p.Start(OP) } Single (sp BinaryOp sp Single)+ { p.End() }
+Op         <- { p.Start(OP) } Single (sp BinaryOp sp Expr)+ { p.End() }
 
 # TODO: Break down by operator type? 
 # TODO: Should we even treat operators specially?
