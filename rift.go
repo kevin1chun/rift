@@ -22,7 +22,7 @@ func main() {
 
 	showVersion  := flags.Bool("version", false, "Prints this version of Rift")
 	debug := flags.Bool("verbose", false, "")
-	
+
 	flags.Parse(os.Args[1:])
 
 	if *debug {

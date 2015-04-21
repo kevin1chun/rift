@@ -18,7 +18,7 @@ import (
 func mainRift(riftDefs []*lang.Node) *lang.Rift {
 	for _, riftDef := range riftDefs {
 		rift := riftDef.Rift()
-		if rift.Name() == "main" {
+		if rift.IsMain() {
 			return rift
 		}
 	}
@@ -26,58 +26,64 @@ func mainRift(riftDefs []*lang.Node) *lang.Rift {
 	return nil
 }
 
-func dereference(env collections.PersistentMap, ref *lang.Ref) interface{} {
-	// TODO: Support multi-rift scenario
+func dereference(rift *lang.Rift, env collections.PersistentMap, ref *lang.Ref) interface{} {
+	// TODO: Support gravity
 	sanity.Ensure(env.Contains(ref.String()), "Undefined reference to [%s]", ref.String())
 	return env.GetOrNil(ref.String())
 }
 
-func doAssignment(env collections.PersistentMap, assignment *lang.Assignment) interface{} {
+func doAssignment(rift *lang.Rift, env collections.PersistentMap, assignment *lang.Assignment) interface{} {
 	// TODO: Should I use lazy assignment here?
-	env.Set(assignment.Ref().String(), evaluate(env, assignment.Value()))
+	var name string
+	if rift.Name() == "main"{
+		name = assignment.Ref().String()
+	} else {
+		name = rift.Name() + ":" + assignment.Ref().String()
+	}
+	env.Set(name, evaluate(rift, env, assignment.Value()))
 	return nil
 }
 
-func doOperation(env collections.PersistentMap, op *lang.Operation) interface{} {
-	lhsValue := evaluate(env, op.LHS())
-	rhsValue := evaluate(env, op.RHS())
+func doOperation(rift *lang.Rift, env collections.PersistentMap, op *lang.Operation) interface{} {
+	lhsValue := evaluate(rift, env, op.LHS())
+	rhsValue := evaluate(rift, env, op.RHS())
 	// TODO: Handle boolean logic elsewhere
 	// TODO: What to do about operator overloading
 	return doMath(lhsValue, rhsValue, op.Operator())
 }
 
-func doIf(env collections.PersistentMap, i *lang.If) interface{} {
-	cond := evaluate(env, i.Condition()).(bool)
+func doIf(rift *lang.Rift, env collections.PersistentMap, i *lang.If) interface{} {
+	cond := evaluate(rift, env, i.Condition()).(bool)
 	var lastValue interface{}
 	if cond {
 		for _, line := range i.Lines() {
-			lastValue = evaluate(env, line)
+			lastValue = evaluate(rift, env, line)
 		}
 	} else {
 		for _, line := range i.ElseLines() {
-			lastValue = evaluate(env, line)
+			lastValue = evaluate(rift, env, line)
 		}
 	}
 	return lastValue
 }
 
-func evaluate(env collections.PersistentMap, v interface{}) interface{} {
+func evaluate(rift *lang.Rift, env collections.PersistentMap, v interface{}) interface{} {
 	if a, isNode := v.(*lang.Node); isNode {
 		switch a.Type {
 		default:
 			return nil
 		case lang.IF:
-			return doIf(env, a.If())
+			return doIf(rift, env, a.If())
 		case lang.OP:
-			return doOperation(env, a.Operation())
+			return doOperation(rift, env, a.Operation())
 		case lang.ASSIGNMENT:
-			return doAssignment(env, a.Assignment())
+			return doAssignment(rift, env, a.Assignment())
 		case lang.FUNCAPPLY:
-			return doFuncApply(env, a.FuncApply())
+			return doFuncApply(rift, env, a.FuncApply())
 		case lang.REF:
-			return dereference(env, a.Ref())
+			return dereference(rift, env, a.Ref())
 		case lang.FUNC:
-			return makeFunc(env, a.Func())
+			return makeFunc(rift, env, a.Func())
 		case lang.STRING:
 			return a.Str()
 		case lang.NUM:
@@ -90,20 +96,29 @@ func evaluate(env collections.PersistentMap, v interface{}) interface{} {
 	}
 }
 
+func evalRift(rift *lang.Rift, env collections.PersistentMap) {
+	logging.Debug("Evaluating rift [%s]", rift.Name())
+	for _, line := range rift.Lines() {
+		evaluate(rift, env, line)
+	}
+}
+
 func Run(rifts []*lang.Node) {
-	// TODO: Oops this only supports one rift :)
+	InitPredefs()
+	env := collections.ExtendPersistentMap(Predefs)
+	for _, riftNode := range rifts {
+		rift := riftNode.Rift()
+		if !rift.IsMain() {
+			evalRift(rift, env)
+		}
+	}
 	if main := mainRift(rifts); main != nil {
-		// ctx := collections.Stack{}
-		InitPredefs()
-		env := collections.ExtendPersistentMap(Predefs)
-		for _, line := range main.Lines() {
-			evaluate(env, line)
-		}
-		logging.Debug("Final environment:")
-		for k, v := range env.Freeze() {
-			logging.Debug(" |- %s = %+v", k, v)
-		}
+		evalRift(main, env)
 	} else {
-		logging.Warn("No such rift [main]")
+		// TODO: Serve functionality
+	}
+	logging.Debug("Final environment:")
+	for k, v := range env.Freeze() {
+		logging.Debug(" |- %s = %+v", k, v)
 	}
 }

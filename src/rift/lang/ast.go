@@ -90,6 +90,10 @@ func (r *Rift) RawName() string {
 	return r.node.Values[0].(*Node).Values[0].(string)
 }
 
+func (r *Rift) IsMain() bool {
+	return r.Name() == "main"
+}
+
 func (r *Rift) Name() string {
 	rawName := r.RawName()
 	if r.HasGravity() {
