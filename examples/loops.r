@@ -1,22 +1,30 @@
 @main => {	
 	for = (s, e, f) -> {
-		_for = (accum) -> {
+		_for = (accum, next) -> {
 			if accum < e {
 				f(accum)
-				_for(accum + 1)
+				next(accum + 1, next)
 			}
 		}
-		_for(s)
+		_for(s, _for)
 	}
 	
-	for(0, 100, (i) -> std:println("HAI [", i, "]"))
+	# for(0, 100, (i) -> std:println("HAI [", i, "]"))
 
 	while = (c, f) -> {
-		if c() {
-			f()
-			while(c, f)
+		_while = (next) -> {
+			if c() {
+				f()
+				next(next)
+			}
 		}
+		_while(_while)
 	}
 	
-	while(() -> 1 == 0, () -> std:println("HAI"))
+
+	i = 10
+	while(() -> {
+		i = i - 1 
+		i > 0
+	}, () -> std:println("HAI [", i, "]"))
 }

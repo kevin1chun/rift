@@ -3,7 +3,6 @@ package runtime
 import (
 	"rift/lang"
 	"rift/support/collections"
-	"rift/support/logging"
 	"rift/support/sanity"
 )
 
@@ -12,18 +11,15 @@ func ensureArity(expectedLength int, actualLength int) {
 }
 
 func makeFunc(rift *lang.Rift, outerEnv collections.PersistentMap, f *lang.Func) func([]interface{}) interface{} {
+	env := collections.ExtendPersistentMap(outerEnv)
 	return func(args []interface{}) interface{} {
 		ensureArity(len(f.Args()), len(args))
-		env := collections.ExtendPersistentMap(outerEnv)
-		logging.Debug("Environment being copied: %+v", env)
 		for i, argRef := range f.Args() {
-			logging.Debug("Setting [%s] = %+v", argRef.String(), args[i])
 			env.Set(argRef.String(), args[i])
 		}
 		
 		var lastValue interface{}
-		for i, line := range f.Lines() {
-			logging.Debug("Running expression %d", i+1)
+		for _, line := range f.Lines() {
 			lastValue = evaluate(rift, env, line)
 		}
 		return lastValue
