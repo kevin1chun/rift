@@ -1,15 +1,14 @@
 GO ?= `which go`
 SCRIPTPATH ?= $(shell pwd)
-POINTLANDER = /home/jl/dev/lib/go/bin/peg
+POINTLANDER = $(SCRIPTPATH)/bin/peg
 
-default: clean gengrammar build
+default: gengrammar build
 
 gengrammar:
 	$(POINTLANDER) -inline -switch $(SCRIPTPATH)/src/rift/lang/rift.g
 
 getdeps:
-	GOPATH=$(SCRIPTPATH) $(GO) get github.com/go-llvm/llvm
-	# GOPATH=$(SCRIPTPATH) $(GO) get llvm.org/llvm/bindings/go/llvm
+	GOPATH=$(SCRIPTPATH) $(GO) get github.com/pointlander/peg
 
 build:
 	GOPATH=$(SCRIPTPATH) $(GO) build -v -o $(SCRIPTPATH)/bin/rift
